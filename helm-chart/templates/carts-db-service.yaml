@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: carts-db
+  labels:
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+spec:
+  type: {{ .Values.cartsDb.service.type }}
+  ports:
+  - port: {{ .Values.cartsDb.service.externalPort }}
+    targetPort: {{ .Values.cartsDb.service.internalPort }}
+    protocol: TCP
+    name: {{ .Values.cartsDb.service.name }}
+  selector:
+    app: {{ .Chart.Name }}-selector-carts-db
