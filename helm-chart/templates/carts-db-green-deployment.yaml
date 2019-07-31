@@ -1,0 +1,61 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: carts-db-green
+  labels:
+    app: {{ .Chart.Name }}-selector-carts-db
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+spec:
+  replicas: {{ .Values.cartsDbGreen.replicaCount }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Chart.Name }}-selector-carts-db
+        deployment: carts-db-green
+    spec:
+      containers:
+      - name: {{ .Values.cartsDbGreen.container.name }}
+        image: "{{ .Values.cartsDbGreen.image.repository }}:{{ .Values.cartsDbGreen.image.tag }}"
+        imagePullPolicy: {{ .Values.cartsDbGreen.image.pullPolicy }}
+        env:
+        - name: DT_TAGS
+          value: "application={{ .Chart.Name }}"
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: "metadata.name"
+        - name: DEPLOYMENT_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: "metadata.labels['deployment']"
+        - name: CONTAINER_IMAGE
+          value: "{{ .Values.cartsDbGreen.image.repository }}:{{ .Values.cartsDbGreen.image.tag }}"
+        - name: KEPTN_PROJECT
+          value: "{{ .Chart.Name }}"
+        - name: KEPTN_STAGE
+          valueFrom:
+            fieldRef:
+              fieldPath: "metadata.namespace"
+        - name: KEPTN_SERVICE
+          value: "{{ .Values.cartsDbGreen.service.name }}"
+        ports:
+        - name: internalport
+          containerPort: {{ .Values.cartsDbGreen.service.internalPort }}
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 60
+          periodSeconds: 10
+          timeoutSeconds: 15
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 60
+          periodSeconds: 10
+          timeoutSeconds: 15
+        resources:
+{{ toYaml .Values.resources | indent 12 }}
